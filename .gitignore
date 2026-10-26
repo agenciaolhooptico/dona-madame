@@ -1,0 +1,12 @@
+.openai/
+node_modules/
+dist/**/*.html
+dist/sitemap.xml
+dist/robots.txt
+dist/.nojekyll
+dist/404.html
+*.zip
+.env
+.env.*
+!.env.example
+.DS_Store
