@@ -1,6 +1,20 @@
 const menu=document.querySelector('.menu-toggle');
-menu?.addEventListener('click',()=>{const open=menu.getAttribute('aria-expanded')!=='true';menu.setAttribute('aria-expanded',open);document.querySelector('header').classList.toggle('menu-open',open)});
-document.addEventListener('keydown',e=>{if(e.key==='Escape'){document.querySelectorAll('details[open]').forEach(d=>d.open=false);menu?.setAttribute('aria-expanded','false');document.querySelector('header').classList.remove('menu-open')}});
+const header=document.querySelector('header');
+const dropdowns=[...document.querySelectorAll('.dropdown')];
+function closeDropdowns(except){dropdowns.forEach(dropdown=>{if(dropdown!==except)dropdown.open=false})}
+function closeMobileMenu(){menu?.setAttribute('aria-expanded','false');header?.classList.remove('menu-open');closeDropdowns()}
+menu?.addEventListener('click',()=>{const open=menu.getAttribute('aria-expanded')!=='true';closeDropdowns();menu.setAttribute('aria-expanded',String(open));header?.classList.toggle('menu-open',open)});
+dropdowns.forEach(dropdown=>{
+ const summary=dropdown.querySelector('summary');
+ summary?.setAttribute('aria-expanded',String(dropdown.open));
+ summary?.addEventListener('click',event=>{event.preventDefault();const open=!dropdown.open;closeDropdowns(dropdown);dropdown.open=open;summary.setAttribute('aria-expanded',String(open))});
+ dropdown.addEventListener('toggle',()=>summary?.setAttribute('aria-expanded',String(dropdown.open)));
+ dropdown.addEventListener('focusout',event=>{if(event.relatedTarget&&!dropdown.contains(event.relatedTarget))dropdown.open=false});
+});
+document.addEventListener('pointerdown',event=>{if(!event.target.closest('.dropdown'))closeDropdowns();if(header&&!header.contains(event.target))closeMobileMenu()});
+document.querySelector('#nav')?.addEventListener('click',event=>{if(event.target.closest('a'))closeMobileMenu()});
+document.addEventListener('keydown',event=>{if(event.key==='Escape'){const active=dropdowns.find(dropdown=>dropdown.open);const mobileOpen=menu?.getAttribute('aria-expanded')==='true';closeMobileMenu();if(active)active.querySelector('summary')?.focus();else if(mobileOpen)menu?.focus()}});
+matchMedia('(min-width:761px)').addEventListener('change',()=>closeMobileMenu());
 document.querySelectorAll('[data-scroll]').forEach(b=>b.addEventListener('click',()=>{const c=document.querySelector('.carousel');c.scrollBy({left:Number(b.dataset.scroll)*(c.querySelector('article').offsetWidth+24),behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'instant':'smooth'})}));
 let selected=new URLSearchParams(location.search).get('categoria')||'Todos';
 const buttons=[...document.querySelectorAll('[data-filter]')];
@@ -15,7 +29,7 @@ if('IntersectionObserver' in window){
  const targets=[];
  if(isHome){
   const groups=[
-   '.care-universe .section-heading > *, .services-intro, .service-tile, .services-closing',
+   '.care-universe .section-heading > *, .services-intro, .services-grid, .services-closing',
    '.clinic-experience > img, .experience-panel',
    '.cares .section-heading > *, .cares .care-card',
    '.founder-photo, .founder-copy > *',
